@@ -10,6 +10,7 @@ public class HypePuck : MonoBehaviour {
     }
 
     public void Reset() {
+        gameObject.SetActive(true);
         transform.position = new Vector3(0,0,0);
         rigidbody2D.velocity = Vector3.zero;
     }

@@ -1,14 +1,15 @@
 using UnityEngine;
+using System;
 
 public class Puck : MonoBehaviour {
     float speed = 8000f;
     bool fired = false;
-    bool done = false;
     private CircleCollider2D _collider;
 
     void Start() {
         _collider = (CircleCollider2D)collider2D;
     }
+
 
     void Update() {
         if (Input.GetMouseButton(0)) {
@@ -27,8 +28,9 @@ public class Puck : MonoBehaviour {
         //Debug.Log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     }
 
+    public static event System.Action<Puck, float[]> Scored;
     void Score() {
-        float points = 0;
+        float[] points = new float[3];
         Vector2 pos = new Vector2(transform.position.x, transform.position.y);
         Collider2D[] colliders = Physics2D.OverlapCircleAll(pos, _collider.radius);
 
@@ -38,17 +40,17 @@ public class Puck : MonoBehaviour {
                 PuckTarget t = colliders[i].gameObject.GetComponent<PuckTarget>();
                 if (t != null &&
                     CenterInCollider((CircleCollider2D)colliders[i]) &&
-                    t.points > points) {
-                    points = t.points;
+                    t.points > points[(int)t.type]) {
+                    points[(int)t.type] = t.points;
                 }
             }
         }
-        Debug.Log(string.Format("Scored {0} points", points));
 
-        Reset();
+        if (Scored != null)
+            Scored(this, points);
     }
 
-    void Reset() {
+    public void Reset() {
         transform.position = new Vector3(0,0,0);
         fired = false;
     }
