@@ -13,6 +13,22 @@ public class ProductMinigame : MonoBehaviour {
 
     public int pucks = 3;
     public Text[] labels;
+    public GameObject bonusTargetPrefab;
+
+    void Start() {
+        int numBonusTargets = UnityEngine.Random.Range(0, 10);
+
+        for (int i=0; i<numBonusTargets; i++) {
+            GameObject bonusTarget = Instantiate(bonusTargetPrefab) as GameObject;
+
+            // TO DO this should be limited to actual stage bounds.
+            float x = -1.5f + UnityEngine.Random.value * 3f;
+            float y = -1.5f + UnityEngine.Random.value * 3f;
+
+            bonusTarget.transform.parent = transform;
+            bonusTarget.transform.localPosition = new Vector2(x, y);
+        }
+    }
 
     void OnEnable() {
         Puck.Scored += Scored;

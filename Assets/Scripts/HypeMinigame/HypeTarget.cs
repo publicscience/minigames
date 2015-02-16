@@ -13,7 +13,8 @@ public class HypeTarget : MonoBehaviour {
         Cos
     }
 
-    public float points = 1f;
+    public float hypePoints = 1f;
+    public float opinionPoints = 1f;
     public float speed = 1f;
     public float distance = 5f;
     public float cascadeRadius = 10f;
@@ -21,9 +22,9 @@ public class HypeTarget : MonoBehaviour {
     public GameObject rangeDisplay;
 
     private Vector2 start;
-    private bool enabled = true;
+    new private bool enabled = true;
 
-    public static event System.Action<float> Scored;
+    public static event System.Action<float, float> Scored;
     public static event System.Action<HypePuck> Completed;
     private static int activeCascades = 0;
 
@@ -106,7 +107,7 @@ public class HypeTarget : MonoBehaviour {
         StartCoroutine(ht.Highlight());
 
         if (Scored != null)
-            Scored(ht.points);
+            Scored(ht.hypePoints, ht.opinionPoints);
 
         StartCoroutine(ht.Cascade(puck, root));
     }
@@ -125,6 +126,7 @@ public class HypeTarget : MonoBehaviour {
         float step = 0.05f;
         for (float f = 0f; f <= 1f + step; f += step) {
             rangeDisplay.transform.localScale = Vector2.Lerp(rangeDisplay.transform.localScale, endScale, Mathf.SmoothStep(0f, 1f, f));
+            //transform.Rotate(0f, Mathf.SmoothStep(0f, 180f, f), 0f);
             yield return null;
         }
 

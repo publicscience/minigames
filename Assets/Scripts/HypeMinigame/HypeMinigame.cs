@@ -3,7 +3,8 @@ using UnityEngine;
 public class HypeMinigame : MonoBehaviour {
     public int pucks = 3;
 
-    private float score = 0;
+    private float hypeScore = 0;
+    private float opinionScore = 0;
 
     void OnEnable() {
         HypeTarget.Scored += Scored;
@@ -15,8 +16,9 @@ public class HypeMinigame : MonoBehaviour {
         HypeTarget.Completed -= Completed;
     }
 
-    void Scored(float points) {
-        score += points;
+    void Scored(float hypePoints, float opinionPoints) {
+        hypeScore += hypePoints;
+        opinionScore += opinionPoints;
     }
 
     void Completed(HypePuck puck) {
@@ -26,6 +28,7 @@ public class HypeMinigame : MonoBehaviour {
         } else {
             puck.gameObject.SetActive(false);
         }
-        Debug.Log(string.Format("Scored {0} points!", score));
+        Debug.Log(string.Format("Scored {0} hype points!", hypeScore));
+        Debug.Log(string.Format("Scored {0} opinion points!", opinionScore));
     }
 }
