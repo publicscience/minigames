@@ -5,8 +5,10 @@ public class BonusTarget : MonoBehaviour {
     public float points = 1;
     public Feature type;
 
+
     void OnTriggerEnter2D(Collider2D other) {
         Debug.Log(string.Format("Scored {0} bonus {1} points!", points, type));
+        other.GetComponent<Puck>().PlayBonusSound();
         gameObject.SetActive(false);
     }
 
@@ -14,6 +16,6 @@ public class BonusTarget : MonoBehaviour {
         // Bonus targets have random points for random features.
         points = Mathf.Floor(1f + UnityEngine.Random.value * 3f);
         Array features = Enum.GetValues(typeof(Feature));
-        type = (Feature)features.GetValue(UnityEngine.Random.Range(0, features.Length - 1));
+        type = (Feature)features.GetValue(UnityEngine.Random.Range(0, features.Length));
     }
 }

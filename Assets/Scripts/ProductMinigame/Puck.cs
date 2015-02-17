@@ -6,8 +6,16 @@ public class Puck : MonoBehaviour {
     bool fired = false;
     private CircleCollider2D _collider;
 
+    private static int[] notes = new int[] { 0, 5, 7, -3, -5, -7, -12, -24, -19, -17, -15 };
+
     void Start() {
         _collider = (CircleCollider2D)collider2D;
+    }
+
+    public void PlayBonusSound() {
+        float note = notes[UnityEngine.Random.Range(0, notes.Length)];
+        audio.pitch =  Mathf.Pow(2, note/12.0f);
+        audio.Play();
     }
 
 

@@ -27,6 +27,7 @@ public class HypeTarget : MonoBehaviour {
     public static event System.Action<float, float> Scored;
     public static event System.Action<HypePuck> Completed;
     private static int activeCascades = 0;
+    private static int[] notes = new int[] { 0, 5, 7, -3, -5, -7, -12, -24, -19, -17, -15 };
 
     float Y(float x) {
         switch (function) {
@@ -113,7 +114,12 @@ public class HypeTarget : MonoBehaviour {
     }
 
     public IEnumerator Highlight() {
+        yield return new WaitForSeconds(Random.value * 0.2f);
         StartCoroutine(ShowHit());
+
+        float note = notes[Random.Range(0, notes.Length)];
+        audio.pitch =  Mathf.Pow(2, note/12.0f);
+        audio.Play();
 
         SpriteRenderer sr = GetComponent<SpriteRenderer>();
         sr.color = new Color(0f,1f,0f);
