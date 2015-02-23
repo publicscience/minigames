@@ -20,13 +20,14 @@ public class HypeTarget : MonoBehaviour {
     public float cascadeRadius = 10f;
     public Function function;
     public GameObject rangeDisplay;
+    public GameObject hypeTargetPuckPrefab;
 
     private Vector2 start;
     new private bool enabled = true;
 
     public static event System.Action<float, float> Scored;
-    public static event System.Action<HypePuck> Completed;
-    private static int activeCascades = 0;
+    public static event System.Action Completed;
+    public static int activePucks = 0;
     private static int[] notes = new int[] { 0, 5, 7, -3, -5, -7, -12, -24, -19, -17, -15 };
 
     float Y(float x) {
@@ -61,60 +62,61 @@ public class HypeTarget : MonoBehaviour {
     }
 
     void OnTriggerEnter2D(Collider2D other) {
-        other.gameObject.SetActive(false);
-
-        rangeDisplay.GetComponent<SpriteRenderer>().color = firstColor;
-
-        HypePuck puck = other.GetComponent<HypePuck>();
         if (enabled) {
-            DoCascade(puck, this, this);
+            // Check if we are working with the player puck.
+            HypePuck puck = other.GetComponent<HypePuck>();
+
+            // If it is the player puck...
+            if (puck.GetType() != typeof(HypeTargetPuck)) {
+                // Highlight the player puck's circular pop specially.
+                rangeDisplay.GetComponent<SpriteRenderer>().color = firstColor;
+                other.gameObject.SetActive(false);
+
+            // Otherwise, it is a target puck.
+            } else {
+                // Ignore the puck if it belongs to this target.
+                if (other.GetComponent<HypeTargetPuck>().owner == this) {
+                    return;
+
+                // Otherwise, this puck is used up and becomes inactive.
+                } else {
+                    activePucks--;
+                    Destroy(other.gameObject);
+                    if (activePucks == 0 && Completed != null) {
+                        Completed();
+                    }
+                }
+            }
+
+            // should targets be able to be re-triggered? much nicer cascade effect, but there needs to be _some_ limit.
             enabled = false;
-        } else {
-            if (Completed != null)
-                Completed(puck);
+            Cascade();
         }
     }
 
-    public IEnumerator Cascade(HypePuck puck, HypeTarget root) {
-        activeCascades++;
-
-        Vector2 center = transform.position;
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(center, cascadeRadius);
-        List<HypeTarget> targets = new List<HypeTarget>();
-
-        for (int i=0; i<colliders.Length; i++) {
-            HypeTarget ht = colliders[i].GetComponent<HypeTarget>();
-            if (ht != null && ht.enabled) {
-                targets.Add(ht);
-            }
-        }
-
-        foreach (HypeTarget ht in targets.OrderBy(t => Vector2.Distance(t.transform.position, center))) {
-            if (ht.enabled) {
-                ht.enabled = false;
-                yield return new WaitForSeconds(0.2f);
-                DoCascade(puck, ht, root);
-            }
-        }
-
-        activeCascades--;
-
-        if (activeCascades == 0) {
-            if (Completed != null)
-                Completed(puck);
-        }
-    }
-    void DoCascade(HypePuck puck, HypeTarget ht, HypeTarget root) {
-        StartCoroutine(ht.Highlight());
+    public void Cascade() {
+        StartCoroutine(Highlight());
 
         if (Scored != null)
-            Scored(ht.hypePoints, ht.opinionPoints);
+            Scored(hypePoints, opinionPoints);
 
-        StartCoroutine(ht.Cascade(puck, root));
+        // Spawn pucks.
+        int num = 3;
+        for (int i=0; i<num; i++) {
+            GameObject puckObj = Instantiate(hypeTargetPuckPrefab) as GameObject;
+            puckObj.transform.position = transform.position;
+            HypeTargetPuck htp = puckObj.GetComponent<HypeTargetPuck>();
+            htp.owner = this;
+            htp.Fire();
+
+            // Keep track of active pucks so we know when
+            // everything is finished.
+            activePucks++;
+        }
     }
 
+    // Highlight the target.
     public IEnumerator Highlight() {
-        yield return new WaitForSeconds(Random.value * 0.2f);
         StartCoroutine(ShowHit());
 
         float note = notes[Random.Range(0, notes.Length)];
@@ -127,12 +129,12 @@ public class HypeTarget : MonoBehaviour {
         sr.color = new Color(0.4f, 0.4f, 0.4f);
     }
 
+    // Show the circular pop around the target.
     IEnumerator ShowHit() {
         Vector2 endScale = transform.localScale * cascadeRadius * 2;
         float step = 0.05f;
         for (float f = 0f; f <= 1f + step; f += step) {
             rangeDisplay.transform.localScale = Vector2.Lerp(rangeDisplay.transform.localScale, endScale, Mathf.SmoothStep(0f, 1f, f));
-            //transform.Rotate(0f, Mathf.SmoothStep(0f, 180f, f), 0f);
             yield return null;
         }
 
